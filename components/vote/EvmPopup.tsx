@@ -1,7 +1,7 @@
 "use client"
 
 import Image from "next/image"
-import { useEffect } from "react"
+import { useEffect, useRef } from "react"
 
 type Props = {
   open: boolean
@@ -29,6 +29,89 @@ export default function EvmPopup({
     if (open) window.addEventListener("keydown", onKey)
     return () => window.removeEventListener("keydown", onKey)
   }, [open, onClose])
+
+  // Text-to-Speech: play Marathi message once when popup opens
+  const hasSpokenRef = useRef(false)
+  const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null)
+
+  useEffect(() => {
+    if (typeof window === "undefined" || !('speechSynthesis' in window)) return
+    const synth = window.speechSynthesis
+
+    function cancelSpeech() {
+      try {
+        synth.cancel()
+      } catch (e) {
+        // ignore errors
+      }
+      utteranceRef.current = null
+    }
+
+    if (!open) {
+      // Reset flag so the text can play the next time popup opens
+      hasSpokenRef.current = false
+      cancelSpeech()
+      return
+    }
+
+    if (hasSpokenRef.current) return
+
+    const text = "धन्यवाद तुमचे डेमो मतदान झाले आहे ."
+
+    function selectVoice(): SpeechSynthesisVoice | null {
+      const voices = synth.getVoices()
+      if (!voices || voices.length === 0) return null
+      // Prefer Marathi, then Hindi, then any IN locale, then fallback
+      let v = voices.find((v) => v.lang && v.lang.toLowerCase().startsWith("mr"))
+      if (!v) v = voices.find((v) => v.name && v.name.toLowerCase().includes("marathi"))
+      if (!v) v = voices.find((v) => v.lang && v.lang.toLowerCase().startsWith("hi"))
+      if (!v) v = voices.find((v) => v.lang && v.lang.toLowerCase().includes("in"))
+      if (!v) v = voices[0]
+      return v || null
+    }
+
+    function speakWithVoice(voice: SpeechSynthesisVoice | null) {
+      if (!open) return
+      const utterance = new SpeechSynthesisUtterance(text)
+      if (voice) {
+        utterance.voice = voice
+        utterance.lang = voice.lang || "mr-IN"
+      } else {
+        utterance.lang = "mr-IN"
+      }
+      // tuned for a natural Marathi-like speaking rate
+      utterance.rate = 0.95
+      utterance.pitch = 1
+      utterance.onend = () => {
+        // finished
+      }
+      utterance.onerror = () => {
+        // ignore errors
+      }
+      utteranceRef.current = utterance
+      synth.speak(utterance)
+      hasSpokenRef.current = true
+    }
+
+    const voice = selectVoice()
+    if (voice) {
+      speakWithVoice(voice)
+      return () => cancelSpeech()
+    }
+
+    // If voices not loaded yet, wait for voiceschanged event once
+    const onVoicesChanged = () => {
+      const v2 = selectVoice()
+      speakWithVoice(v2)
+      synth.removeEventListener("voiceschanged", onVoicesChanged)
+    }
+    synth.addEventListener("voiceschanged", onVoicesChanged)
+
+    return () => {
+      synth.removeEventListener("voiceschanged", onVoicesChanged)
+      cancelSpeech()
+    }
+  }, [open])
 
   if (!open) return null
 
