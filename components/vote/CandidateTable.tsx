@@ -41,27 +41,7 @@ export default function CandidateTable({
       {/* Beep sound */}
       <audio ref={beepRef} src="/beep.mp3" preload="auto" />
 
-      {/* EVM machine */}
-      <div className="mb-6 flex justify-center">
-        <div className="relative w-[320px]">
-          <Image src="/evm.png" alt="EVM machine" width={320} height={520} className="block" />
-
-          {/* Inline popup placed over the EVM display hole */}
-          {selected && (
-            <div className="absolute left-1/2 top-[20%] -translate-x-1/2 z-30 pointer-events-auto">
-              <EvmPopup
-                open
-                inline
-                onClose={() => setSelected(null)}
-                candidateNameMr={selected.candidateNameMr}
-                candidatePhotoUrl={selected.candidatePhotoUrl}
-                symbolPhotoUrl={selected.symbolPhotoUrl}
-                className="w-[200px]"
-              />
-            </div>
-          )}
-        </div>
-      </div>
+    
 
       <table className="mt-4 w-full border-2 border-black text-sm">
         <thead>
@@ -143,6 +123,16 @@ export default function CandidateTable({
         </tbody>
       </table>
 
+      {/* Full-screen EVM popup overlay when a candidate is selected */}
+      {selected && (
+        <EvmPopup
+          open
+          onClose={() => setSelected(null)}
+          candidateNameMr={selected.candidateNameMr}
+          candidatePhotoUrl={selected.candidatePhotoUrl}
+          symbolPhotoUrl={selected.symbolPhotoUrl}
+        />
+      )}
 
     </>
   )
