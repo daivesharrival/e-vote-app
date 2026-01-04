@@ -85,6 +85,22 @@ console.log("Fetched candidates:", candidates)
           candidates={candidates}
  
         />
+
+        <div className="mt-6 text-center text-sm text-gray-600">
+         डेमो मतदान लिंक तयार करण्यासाठी खालील लिंक वर क्लिक करा
+          <br />
+          <a
+            href="/admin/login"
+            className="text-blue-600 underline"
+          >
+           create-demo-vote-link
+          </a>
+
+
+        </div>
+        <div className="mt-6 text-center text-sm text-gray-600">
+
+        </div>
       </div>
     </main>
   )
