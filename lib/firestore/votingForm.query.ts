@@ -8,6 +8,7 @@ import { db } from "@/lib/firebase"
 
 export type VotingFormPlain = {
   id: string
+  candidateNameEn: string
   candidateNameMr: string
   candidatePhotoUrl: string
   symbolPhotoUrl: string
@@ -27,6 +28,7 @@ export const getVotingForms = async (): Promise<VotingFormPlain[]> => {
 
     return {
       id: doc.id,
+      candidateNameEn: (data.candidateNameEn ?? "").toString().trim(),
       candidateNameMr: data.candidateNameMr,
       candidatePhotoUrl: data.candidatePhotoUrl,
       symbolPhotoUrl: data.symbolPhotoUrl,

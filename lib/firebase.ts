@@ -13,7 +13,12 @@ const firebaseConfig = {
 
 export const app = getApps().length ? getApp() : initializeApp(firebaseConfig)
 
-export const auth = getAuth(app)
+// Initialize auth only on the client (browser) and when an API key is available.
+// This prevents server-side builds from failing when NEXT_PUBLIC_* env vars are not set.
+export const auth = (typeof window !== "undefined" && process.env.NEXT_PUBLIC_FIREBASE_API_KEY)
+  ? getAuth(app)
+  : null
+
 export const db = getFirestore(app)
 
 /**
@@ -22,6 +27,10 @@ export const db = getFirestore(app)
  */
 export const tryAnonymousSignIn = async (): Promise<boolean> => {
   if (process.env.NEXT_PUBLIC_ENABLE_ANON_AUTH !== "true") return false
+  if (!auth) {
+    // If auth is not available (server or missing API key), bail silently.
+    return false
+  }
 
   try {
     // Import signInAnonymously lazily to keep modules tree-shakable in environments
